@@ -51,12 +51,14 @@ module.exports = async = (req, res) => {
 							console.log(e);
 							return res
 								.status(500)
-								.send('Something went wrong sending the email');
+								.send({ error: 'Something went wrong sending the email' });
 						});
 				})
 				.catch((e) => {
 					console.log(e);
-					return res.status(500).send('Something wrong adding user to DB');
+					return res
+						.status(500)
+						.send({ error: 'Something wrong adding user to DB' });
 				});
 		}
 		case 'PUT': {
