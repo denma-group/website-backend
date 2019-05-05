@@ -2,15 +2,13 @@ const admin = require('firebase-admin');
 const functions = require('firebase-functions');
 const uuidv1 = require('uuid/v1');
 const SENDGRID_KEY = functions.config().sendgrid.key;
-
 const sgMail = require('@sendgrid/mail');
-sgMail.setApiKey(
-	'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'
-);
+
+sgMail.setApiKey(SENDGRID_KEY);
 let db = admin.database();
 let ref = db.ref('users');
 
-module.exports = async = (req, res) => {
+module.exports = async (req, res) => {
 	switch (req.method) {
 		case 'GET': {
 			return;
@@ -20,8 +18,8 @@ module.exports = async = (req, res) => {
 			let usersRef = ref.child(id);
 			const { fullName, email, location, message } = req.body;
 			// TODO: change data when front end is ready to make the call.
-			return usersRef
-				.set({
+			try {
+				await usersRef.set({
 					uid: id,
 					full_name: 'Jorge Baralt',
 					email: 'jorgebaraltq@gmail.com',
@@ -29,37 +27,24 @@ module.exports = async = (req, res) => {
 					location: 'USA',
 					subscription: false,
 					email_confirmed: false,
-				})
-				.then(() => {
-					const msg = {
-						to: 'robertmolina0310@gmail.com',
-						from: 'denma.group@gmail.com',
-						subject: 'Welcome to Denma',
-						templateId: 'd-dc3d989e708446dd84b6a828bab8fa5c',
-						html: ' ',
-						substitutionWrappers: ['{{', '}}'],
-						substitutions: {
-							name: 'Jorge',
-						},
-					};
-					return sgMail
-						.send(msg)
-						.then(() => {
-							return res.send('Email sent');
-						})
-						.catch((e) => {
-							console.log(e);
-							return res
-								.status(500)
-								.send({ error: 'Something went wrong sending the email' });
-						});
-				})
-				.catch((e) => {
-					console.log(e);
-					return res
-						.status(500)
-						.send({ error: 'Something wrong adding user to DB' });
 				});
+				const msg = {
+					to: 'jorgebaraltq@gmail.com',
+					from: 'denma.group@gmail.com',
+					subject: 'Welcome to Denma',
+					templateId: 'd-dc3d989e708446dd84b6a828bab8fa5c',
+					html: ' ',
+					substitutionWrappers: ['{{', '}}'],
+					substitutions: {
+						name: 'Jorge',
+					},
+				};
+				await sgMail.send(msg);
+			} catch (e) {
+				console.log(e);
+				return res.status(500).send({ error: 'Something went wrong.' });
+			}
+			return res.send({ success: 'Email has been sent' });
 		}
 		case 'PUT': {
 			return;
